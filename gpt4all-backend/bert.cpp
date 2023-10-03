@@ -898,6 +898,15 @@ bool Bert::usingGPUDevice()
     return false;
 }
 
+std::string get_arch_name(gguf_context *ctx_gguf) {
+    std::string arch_name;
+    const int kid = gguf_find_key(ctx_gguf, "general.architecture");
+    enum gguf_type ktype = gguf_get_kv_type(ctx_gguf, kid);
+    if (ktype != GGUF_TYPE_STRING) {
+        throw std::runtime_error("ERROR: Can't get general architecture from gguf file.");
+    }
+    return gguf_get_val_str(ctx_gguf, kid);
+}
 
 #if defined(_WIN32)
 #define DLL_EXPORT __declspec(dllexport)
