@@ -918,13 +918,21 @@ DLL_EXPORT const char *get_build_variant() {
     return GGML_BUILD_VARIANT;
 }
 
-DLL_EXPORT bool magic_match(std::istream& f) {
-    uint32_t magic = 0;
-    f.read(reinterpret_cast<char*>(&magic), sizeof(magic));
-    if (magic != 0x62657274) {
+DLL_EXPORT bool magic_match(const char * fname) {
+    struct ggml_context * ctx_meta = NULL;
+    struct gguf_init_params params = {
+        /*.no_alloc = */ true,
+        /*.ctx      = */ &ctx_meta,
+    };
+    gguf_context *ctx_gguf = gguf_init_from_file(fname, params);
+    if (!ctx_gguf)
          return false;
-    }
-    return true;
+
+    bool isValid = gguf_get_version(ctx_gguf) <= 2;
+    isValid = isValid && get_arch_name(ctx_gguf) == "bert";
+
+    gguf_free(ctx_gguf);
+    return isValid;
 }
 
 DLL_EXPORT LLModel *construct() {
