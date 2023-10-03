@@ -309,17 +309,17 @@ void bert_eval(
     }
 
     struct ggml_tensor *inpL = ggml_get_rows(ctx0, model.word_embeddings, token_layer);
-    inpL = ggml_add(ctx0,
+        inpL = ggml_add(ctx0,
                     ggml_get_rows(ctx0, model.token_type_embeddings, token_types),
                     inpL);
-    inpL = ggml_add(ctx0,
+        inpL = ggml_add(ctx0,
                     ggml_get_rows(ctx0, model.position_embeddings, positions),
                     inpL);
-    // embd norm
+        // embd norm
     {
         inpL = ggml_norm(ctx0, inpL, 1e-5f);
-        inpL = ggml_add(ctx0, ggml_mul(ctx0, inpL, model.ln_e_w), model.ln_e_b);
-    }
+                inpL = ggml_add(ctx0, ggml_mul(ctx0, inpL, model.ln_e_w), model.ln_e_b);
+            }
     // layers
     for (int il = 0; il < n_layer; il++)
     {
@@ -329,7 +329,7 @@ void bert_eval(
         {
             struct ggml_tensor *Qcur = cur;
             struct ggml_tensor *Qmm = ggml_mul_mat(ctx0, model.layers[il].q_w, Qcur);
-            Qcur = ggml_reshape_3d(ctx0,
+                        Qcur = ggml_reshape_3d(ctx0,
                                    ggml_add(ctx0, 
                                             Qmm, model.layers[il].q_b),
                                    d_head, n_head, N);
@@ -406,11 +406,11 @@ void bert_eval(
     // pooler
     struct ggml_tensor *sum = ggml_new_tensor_2d(ctx0, GGML_TYPE_F32, N, 1);
     ggml_set_f32(sum, 1.0f / N);
-    inpL = ggml_mul_mat(ctx0, inpL, sum);
+        inpL = ggml_mul_mat(ctx0, inpL, sum);
     
     ggml_tensor *output = inpL;
     // run the computation
-    ggml_build_forward_expand(&gf, output);
+        ggml_build_forward_expand(&gf, output);
     //ggml_graph_compute_g4a()
     #ifdef GGML_USE_KOMPUTE
     if (ctx->vk_ctx) {
@@ -422,7 +422,7 @@ void bert_eval(
 
         ggml_vk_graph_compute(ctx->vk_ctx, &gf);
         ggml_vk_d2h_tensor(ctx->vk_ctx, output);
-    } else {
+            } else {
         ggml_graph_compute_g4a(ctx->work_buf, &gf, n_threads);
     }
     #else
@@ -441,7 +441,7 @@ void bert_eval(
     #endif
 
     memcpy(embeddings, (float *)ggml_get_data(output), sizeof(float) * n_embd);
-    // printf("used_mem = %zu KB \n", ggml_used_mem(ctx0) / 1024);
+        // printf("used_mem = %zu KB \n", ggml_used_mem(ctx0) / 1024);
     // printf("mem_per_token = %zu KB \n", mem_per_token / 1024);
 
     ggml_free(ctx0);
@@ -557,9 +557,9 @@ struct bert_ctx * bert_load_from_file(const char *fname)
 
         if (!ok) {
             fprintf(stderr, "%s: required hparam missing!\n", __func__);
-            return nullptr;
+                        return nullptr;
         }
-
+    
 #if defined(DEBUG_BERT)
         printf("%s: n_max_tokens   = %d\n", __func__, hparams.n_max_tokens);
         printf("%s: n_embd         = %d\n", __func__, hparams.n_embd);
@@ -567,7 +567,7 @@ struct bert_ctx * bert_load_from_file(const char *fname)
         printf("%s: n_head         = %d\n", __func__, hparams.n_head);
         printf("%s: n_layer        = %d\n", __func__, hparams.n_layer);
 #endif
-    }
+}
 
     // load vocab
     {
@@ -576,21 +576,21 @@ struct bert_ctx * bert_load_from_file(const char *fname)
         int keyidx = gguf_find_key(ggufctx, "tokenizer.ggml.model");
         if (keyidx == -1) {
             fprintf(stderr, "%s: tokenizer model not found!\n", __func__);
-                        return nullptr;
-        }
-    if (strcmp(gguf_get_val_str(ggufctx, keyidx), "bert") != 0) {
-            fprintf(stderr, "%s: tokenizer model not supported!\n", __func__);
-            return nullptr;
-        }
+                return nullptr;
+            }
+if (strcmp(gguf_get_val_str(ggufctx, keyidx), "bert") != 0) {
+                fprintf(stderr, "%s: tokenizer model not supported!\n", __func__);
+                return nullptr;
+            }
 
-        int tokens_keyidx = gguf_find_key(ggufctx, "tokenizer.ggml.tokens");
+            int tokens_keyidx = gguf_find_key(ggufctx, "tokenizer.ggml.tokens");
         if (tokens_keyidx == -1) {
-            fprintf(stderr, "%s: bert tokenizer vocab not found!\n", __func__);
-            return nullptr;
-        }
+                fprintf(stderr, "%s: bert tokenizer vocab not found!\n", __func__);
+                return nullptr;
+            }
 
-        hparams.n_vocab = gguf_get_arr_n(ggufctx, tokens_keyidx);
-        printf("%s: bert tokenizer vocab = %d\n", __func__, int(hparams.n_vocab));
+hparams.n_vocab = gguf_get_arr_n(ggufctx, tokens_keyidx);
+            printf("%s: bert tokenizer vocab = %d\n", __func__, int(hparams.n_vocab));
 
         for (int i = 0; i < hparams.n_vocab; i++) {
             std::string word = gguf_get_arr_str(ggufctx, tokens_keyidx, i);
@@ -606,7 +606,7 @@ struct bert_ctx * bert_load_from_file(const char *fname)
                 vocab.token_to_id[word] = i;
                 vocab._id_to_token[i] = word;
             }
-        }
+}
     }
 
     auto &ctx = model.ctx;
@@ -653,7 +653,21 @@ struct bert_ctx * bert_load_from_file(const char *fname)
             layer.ff_o_w   = ggml_get_tensor(ctx, name(i, "ffn_down.weight"));
             layer.ff_o_b   = ggml_get_tensor(ctx, name(i, "ffn_down.bias"));
         }
+}
+    new_bert->buf_compute.resize(1536 * 1024 * 1024);
+    new_bert->work_buf.resize(64 * 1024 * 1024);
+
+#ifdef GGML_USE_KOMPUTE
+    if (ggml_vk_has_device()) {
+        new_bert->vk_ctx = ggml_vk_init();
+        ggml_vk_add_buffer(new_bert->vk_ctx, "data", new_bert->weights_buf.memory);
+        ggml_vk_add_buffer(new_bert->vk_ctx, "eval", new_bert->buf_compute.memory);
+        ggml_vk_add_buffer(new_bert->vk_ctx, "work", new_bert->work_buf.memory);
+        ggml_vk_h2d_all(new_bert->vk_ctx);
+    } else {
+        new_bert->vk_ctx = nullptr;
     }
+#endif
 
     return new_bert;
 }
@@ -809,15 +823,81 @@ const std::vector<LLModel::Token> &Bert::endTokens() const
     return out;
 }
 
-std::string get_arch_name(gguf_context *ctx_gguf) {
-    std::string arch_name;
-    const int kid = gguf_find_key(ctx_gguf, "general.architecture");
-    enum gguf_type ktype = gguf_get_kv_type(ctx_gguf, kid);
-    if (ktype != GGUF_TYPE_STRING) {
-        throw std::runtime_error("ERROR: Can't get general architecture from gguf file.");
+std::vector<LLModel::GPUDevice> Bert::availableGPUDevices(size_t memoryRequired)
+{
+#if defined(GGML_USE_KOMPUTE)
+    std::vector<ggml_vk_device> vkDevices = ggml_vk_available_devices(memoryRequired);
+
+    std::vector<LLModel::GPUDevice> devices;
+    for(const auto& vkDevice : vkDevices) {
+        LLModel::GPUDevice device;
+        device.index = vkDevice.index;
+        device.type = vkDevice.type;
+        device.heapSize = vkDevice.heapSize;
+        device.name = vkDevice.name;
+        device.vendor = vkDevice.vendor;
+
+        devices.push_back(device);
     }
-    return gguf_get_val_str(ctx_gguf, kid);
+
+    return devices;
+#else
+    return std::vector<LLModel::GPUDevice>();
+#endif
 }
+
+bool Bert::initializeGPUDevice(size_t memoryRequired, const std::string& device)
+{
+#if defined(GGML_USE_KOMPUTE)
+    return ggml_vk_init_device(memoryRequired, device);
+#else
+    return false;
+#endif
+}
+
+bool Bert::initializeGPUDevice(const LLModel::GPUDevice &device)
+{
+#if defined(GGML_USE_KOMPUTE)
+    ggml_vk_device vkDevice;
+    vkDevice.index = device.index;
+    vkDevice.type = device.type;
+    vkDevice.heapSize = device.heapSize;
+    vkDevice.name = device.name;
+    vkDevice.vendor = device.vendor;
+    return ggml_vk_init_device(vkDevice);
+#else
+    return false;
+#endif
+}
+
+bool Bert::initializeGPUDevice(int device)
+{
+#if defined(GGML_USE_KOMPUTE)
+    return ggml_vk_init_device(device);
+#else
+    return false;
+#endif
+}
+
+bool Bert::hasGPUDevice()
+{
+#if defined(GGML_USE_KOMPUTE)
+    return ggml_vk_has_device();
+#else
+    return false;
+#endif
+}
+
+bool Bert::usingGPUDevice()
+{
+#if defined(GGML_USE_KOMPUTE)
+    return ggml_vk_using_vulkan();
+#elif defined(GGML_USE_METAL)
+    return true;
+#endif
+    return false;
+}
+
 
 #if defined(_WIN32)
 #define DLL_EXPORT __declspec(dllexport)
@@ -838,21 +918,13 @@ DLL_EXPORT const char *get_build_variant() {
     return GGML_BUILD_VARIANT;
 }
 
-DLL_EXPORT bool magic_match(const char * fname) {
-    struct ggml_context * ctx_meta = NULL;
-    struct gguf_init_params params = {
-        /*.no_alloc = */ true,
-        /*.ctx      = */ &ctx_meta,
-    };
-    gguf_context *ctx_gguf = gguf_init_from_file(fname, params);
-    if (!ctx_gguf)
+DLL_EXPORT bool magic_match(std::istream& f) {
+    uint32_t magic = 0;
+    f.read(reinterpret_cast<char*>(&magic), sizeof(magic));
+    if (magic != 0x62657274) {
          return false;
-    
-    bool isValid = gguf_get_version(ctx_gguf) <= 2;
-    isValid = isValid && get_arch_name(ctx_gguf) == "bert";
-
-    gguf_free(ctx_gguf);
-    return isValid;
+    }
+    return true;
 }
 
 DLL_EXPORT LLModel *construct() {
