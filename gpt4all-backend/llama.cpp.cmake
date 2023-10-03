@@ -188,7 +188,7 @@ if (LLAMA_KOMPUTE)
         string(REPLACE "." "_" HEADER_FILE_DEFINE "${HEADER_FILE_DEFINE}")
         set(OUTPUT_HEADER_FILE "${HEADER_FILE}")
         message(STATUS "${HEADER_FILE} generating ${HEADER_FILE_DEFINE}")
-        if(CMAKE_GENERATOR MATCHES "Visual Studio")
+        if(CMAKE_GENERATOR MATCHES "Visual Studio") 
             add_custom_command(
               OUTPUT ${OUTPUT_HEADER_FILE}
               COMMAND ${CMAKE_COMMAND} -E echo "/*THIS FILE HAS BEEN AUTOMATICALLY GENERATED - DO NOT EDIT*/" > ${OUTPUT_HEADER_FILE}
@@ -242,6 +242,9 @@ if (LLAMA_KOMPUTE)
           kompute/op_mul_mat_q4_0.comp
           kompute/op_mul_mat_q4_1.comp
           kompute/op_mul_mat_q6_k.comp
+          kompute/op_mul_mat_mat_f32.comp
+          kompute/op_mul_mat_mat_f16.comp
+          kompute/op_mul_mat_mat_q4_0.comp
           kompute/op_getrows_f16.comp
           kompute/op_getrows_q4_0.comp
           kompute/op_getrows_q4_1.comp
@@ -271,6 +274,9 @@ if (LLAMA_KOMPUTE)
           shaderop_mul_mat_q4_0.h
           shaderop_mul_mat_q4_1.h
           shaderop_mul_mat_q6_k.h
+          shaderop_mul_mat_mat_f32.h
+          shaderop_mul_mat_mat_f16.h
+          shaderop_mul_mat_mat_q4_0.h
           shaderop_getrows_f16.h
           shaderop_getrows_q4_0.h
           shaderop_getrows_q4_1.h
@@ -615,7 +621,7 @@ function(include_ggml DIRECTORY SUFFIX WITH_LLAMA)
 
     if (WITH_LLAMA)
         # Backwards compatibility with old llama.cpp versions
-#        set(LLAMA_UTIL_SOURCE_FILE llama-util.h)
+        #        set(LLAMA_UTIL_SOURCE_FILE llama-util.h)
         if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${DIRECTORY}/${LLAMA_UTIL_SOURCE_FILE})
             set(LLAMA_UTIL_SOURCE_FILE llama_util.h)
         endif()
